@@ -1,0 +1,19 @@
+---
+# tasks file for nic
+- name: Add ethernet configuration
+  become: true
+  community.general.nmcli:
+    conn_name: "{{ network_name }}"
+    ifname: "{{ ethernet_interface_name }}"
+    type: ethernet
+    ip4: "{{ ipv4 }}"
+    state: present
+  tags:
+    - add_ethernet
+
+- name: Activate ethnet profile "{{ network_name }}" auto_connect
+  become: true
+  command: nmcli connection up "{{ network_name }}"
+  tags:
+    - add_ethernet
+  when: auto_connect
