@@ -2,6 +2,7 @@
 # defaults file for nic
 
 network_name: network-name
-ethernet_interface_name: enp5s0 # Terminal command: ip link show
-ipv4: 172.29.109.100/16
+ethernet_interface_name: eno1 # Terminal command: ip link show
+ipv4: 'IGNORE' # 192.168.1.10/24
+method4: auto
 auto_connect: false

@@ -1,19 +1,29 @@
 ---
 # tasks file for nic
-- name: Add ethernet configuration
-  become: true
-  community.general.nmcli:
-    conn_name: "{{ network_name }}"
-    ifname: "{{ ethernet_interface_name }}"
-    type: ethernet
-    ip4: "{{ ipv4 }}"
-    state: present
-  tags:
-    - add_ethernet
+- block:
+  - name: Add ethernet configuration - {{ network_name }} @ {{ ethernet_interface_name }} (manual)
+    become: true
+    community.general.nmcli:
+      conn_name: "{{ network_name }}"
+      ifname: "{{ ethernet_interface_name }}"
+      type: ethernet
+      ip4: "{{ ipv4 }}"
+      state: present
+      autoconnect: "{{ auto_connect }}"
+    tags:
+      - add_ethernet
+  when: ipv4 != 'IGNORE'
 
-- name: Activate ethnet profile "{{ network_name }}" auto_connect
-  become: true
-  command: nmcli connection up "{{ network_name }}"
-  tags:
-    - add_ethernet
-  when: auto_connect
+- block:
+  - name: Add ethernet configuration - {{ network_name }} @ {{ ethernet_interface_name }} ({{ method4 }})
+    become: true
+    community.general.nmcli:
+      conn_name: "{{ network_name }}"
+      ifname: "{{ ethernet_interface_name }}"
+      type: ethernet
+      state: present
+      method4: "{{ method4 }}"
+      autoconnect: "{{ auto_connect }}"
+    tags:
+      - add_ethernet
+  when: ipv4 == 'IGNORE'

@@ -1,38 +1,84 @@
-Role Name
-=========
+# ansible-role-NIC
 
-A brief description of the role goes here.
+## Description
 
-Requirements
-------------
+This Ansible role manages Ethernet network connections via NetworkManager’s `nmcli`.  
+It can configure a static IPv4 address or use DHCP/automatic addressing, and optionally enable autoconnect on boot.
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+## Requirements
 
-Role Variables
---------------
+- Ansible **2.10** or newer  
+- [NetworkManager](https://networkmanager.org/) and `nmcli` installed on target hosts  
+- The [`community.general`](https://galaxy.ansible.com/community/general) collection  
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+## Role Variables
 
-Dependencies
-------------
+| Variable                  | Default           | Description                                                                                             |
+|---------------------------|-------------------|---------------------------------------------------------------------------------------------------------|
+| `network_name`            | `network-name`    | Name of the connection profile to create or manage.                                                     |
+| `ethernet_interface_name` | `eno1`            | Interface name (as shown by `ip link show`) to bind the connection to.                                  |
+| `ipv4`                    | `'IGNORE'`        | Static IPv4 CIDR (e.g. `192.168.1.10/24`). Set to `'IGNORE'` to skip static config and use `method4`.    |
+| `method4`                 | `auto`            | IPv4 addressing method when `ipv4` is `'IGNORE'`. One of `auto` (DHCP) or `manual`.                     |
+| `auto_connect`            | `false`           | Whether the connection should autoconnect on boot (`true` or `false`).                                  |
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+---
 
-Example Playbook
-----------------
+## Dependencies
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+This role depends on the `community.general` collection for the `nmcli` module:
 
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
+```bash
+ansible-galaxy collection install community.general
+```
 
-License
--------
+---
 
-BSD
+## Example Playbook
 
-Author Information
-------------------
+```yaml
+- hosts: all
+  become: true
+  roles:
+    - role: NIC
+      network_name: private
+      ethernet_interface_name: ens19
+      ipv4: 10.0.0.3/24
+      auto_connect: true
 
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+    - role: NIC
+      network_name: internet
+      ethernet_interface_name: ens19
+      # Use DHCP/auto addressing
+      method4: auto
+      auto_connect: true
+```
+
+---
+
+## Usage in `requirements.yml`
+
+To install both the role and its collection dependency:
+
+```yaml
+collections:
+  - name: community.general
+    version: "5.3.0"
+
+roles:
+  - name: nic
+    src: git@…/NIC.git
+```
+
+Then:
+
+```bash
+ansible-galaxy collection install -r requirements.yml
+ansible-galaxy role install       -r requirements.yml
+```
+
+---
+
+## License
+
+This role is released under the MIT License.
+
